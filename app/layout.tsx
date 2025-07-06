@@ -4,7 +4,8 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { ClerkProvider } from '@clerk/nextjs';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorHandler } from './error-handler';
 
 export const metadata: Metadata = {
   title: "CodeSprint - Online Coding Platform",
@@ -49,17 +50,18 @@ export default function RootLayout({
   }
 
   return (
-    <ErrorBoundary>
-      <ClerkProvider publishableKey={publishableKey}>
-        <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
-          <body className="antialiased">
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <body className="antialiased">
+        <ErrorBoundary>
+          <ClerkProvider publishableKey={publishableKey}>
+            <ErrorHandler />
             <Navbar />
             <main className="min-h-screen">
               {children}
             </main>
-          </body>
-        </html>
-      </ClerkProvider>
-    </ErrorBoundary>
+          </ClerkProvider>
+        </ErrorBoundary>
+      </body>
+    </html>
   );
 }

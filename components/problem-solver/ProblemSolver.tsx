@@ -171,13 +171,13 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
               
               <TabsContent value="description" className="flex-1 overflow-y-auto min-h-0 data-[state=inactive]:hidden">
                 <div className="h-full">
-                  <ProblemDescription problem={problem} />
+                <ProblemDescription problem={problem} />
                 </div>
               </TabsContent>
               
               <TabsContent value="submissions" className="flex-1 overflow-y-auto min-h-0 data-[state=inactive]:hidden">
                 <div className="h-full">
-                  <SubmissionResults submissions={userSubmissions} />
+                <SubmissionResults submissions={userSubmissions} />
                 </div>
               </TabsContent>
             </Tabs>
@@ -193,18 +193,18 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
               <ResizablePanel defaultSize={60} minSize={30}>
                 <div className="h-full p-4">
                   <div className="h-full bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <CodeEditor
-                      onSubmit={handleSubmit}
-                      onRun={handleRun}
-                      loading={loading}
-                      initialCode={{
-                        javascript: typedProblem.starter_code_js,
-                        python: typedProblem.starter_code_py,
-                        java: typedProblem.starter_code_java,
-                        cpp: typedProblem.starter_code_cpp,
-                      }}
-                      problemId={problem.id}
-                    />
+          <CodeEditor
+            onSubmit={handleSubmit}
+            onRun={handleRun}
+            loading={loading}
+            initialCode={{
+              javascript: typedProblem.starter_code_js,
+              python: typedProblem.starter_code_py,
+              java: typedProblem.starter_code_java,
+              cpp: typedProblem.starter_code_cpp,
+            }}
+            problemId={problem.id}
+          />
                   </div>
                 </div>
               </ResizablePanel>

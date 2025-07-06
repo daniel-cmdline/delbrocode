@@ -5,7 +5,16 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 
 export default function HeroSectionOne() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
+
+  // Don't render until Clerk is loaded to prevent hydration issues
+  if (!isLoaded) {
+    return (
+      <div className="relative w-full min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
@@ -93,11 +102,11 @@ export default function HeroSectionOne() {
           {isSignedIn ? (
             <Link href="/problems">
               <button className="w-60 transform rounded-lg bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-200">
-                Get Started
+                Go to Problems
               </button>
             </Link>
           ) : (
-            <Link href="/sign-up">
+            <Link href="/sign-in">
               <button className="w-60 transform rounded-lg bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-200">
                 Get Started
               </button>
