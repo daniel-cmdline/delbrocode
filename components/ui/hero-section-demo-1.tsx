@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { SignInButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 
 export default function HeroSectionOne() {
   const { isSignedIn } = useUser();
@@ -97,11 +97,11 @@ export default function HeroSectionOne() {
               </button>
             </Link>
           ) : (
-            <SignInButton mode="modal">
+            <Link href="/sign-up">
               <button className="w-60 transform rounded-lg bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-200">
                 Get Started
               </button>
-            </SignInButton>
+            </Link>
           )}
         </motion.div>
         

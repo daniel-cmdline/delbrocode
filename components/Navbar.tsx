@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Home, User, Code } from 'lucide-react';
-import { useUser, SignInButton, UserButton } from '@clerk/nextjs';
+import { useUser, UserButton } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 
 export function Navbar() {
@@ -21,7 +21,7 @@ export function Navbar() {
   if (!mounted) {
     return (
       <nav className="border-b border-neutral-200/20 bg-gradient-to-r from-gray-900 via-black to-gray-800 backdrop-blur supports-[backdrop-filter]:bg-gray-900/95">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="w-full px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Link href="/" className="flex items-center space-x-2">
               <Image 
@@ -67,7 +67,7 @@ export function Navbar() {
 
   return (
     <nav className="border-b border-neutral-200/20 bg-gradient-to-r from-gray-900 via-black to-gray-800 backdrop-blur supports-[backdrop-filter]:bg-gray-900/95">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="w-full px-6 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Link href="/" className="flex items-center space-x-2">
             <Image 
@@ -125,16 +125,16 @@ export function Navbar() {
             </div>
           ) : (
             <div className="flex items-center space-x-4">
-              <SignInButton mode="modal">
+              <Link href="/sign-in">
                 <Button variant="ghost" className="text-white hover:text-gray-200 hover:bg-white/10">
                   Sign In
                 </Button>
-              </SignInButton>
-              <SignInButton mode="modal">
+              </Link>
+              <Link href="/sign-up">
                 <Button className="bg-white text-black hover:bg-gray-200">
                   Sign Up
                 </Button>
-              </SignInButton>
+              </Link>
             </div>
           )}
         </div>
