@@ -188,169 +188,177 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
         
         <ResizablePanel defaultSize={65} minSize={30}>
           <div className="h-full flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            {/* Code Editor Section */}
-            <div className="flex-1 min-h-0 p-4" style={{ flex: '0 0 60%' }}>
-              <div className="h-full bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <CodeEditor
-                  onSubmit={handleSubmit}
-                  onRun={handleRun}
-                  loading={loading}
-                  initialCode={{
-                    javascript: typedProblem.starter_code_js,
-                    python: typedProblem.starter_code_py,
-                    java: typedProblem.starter_code_java,
-                    cpp: typedProblem.starter_code_cpp,
-                  }}
-                  problemId={problem.id}
-                />
-              </div>
-            </div>
-            
-            {/* Results Section */}
-            <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 min-h-32 max-h-96 flex flex-col" style={{ flex: '0 0 40%' }}>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                <div className="bg-background border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                  <TabsList className="grid w-full grid-cols-3 h-10 rounded-none border-b-0 bg-gray-100 dark:bg-gray-800">
-                    <TabsTrigger value="testcases" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Test Cases</TabsTrigger>
-                    <TabsTrigger value="output" className="flex items-center gap-2 rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">
-                      Output
-                      {loading && <Loader2 className="h-3 w-3 animate-spin" />}
-                    </TabsTrigger>
-                    <TabsTrigger value="details" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Details</TabsTrigger>
-                  </TabsList>
+            <ResizablePanelGroup direction="vertical" className="h-full">
+              {/* Code Editor Section */}
+              <ResizablePanel defaultSize={60} minSize={30}>
+                <div className="h-full p-4">
+                  <div className="h-full bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <CodeEditor
+                      onSubmit={handleSubmit}
+                      onRun={handleRun}
+                      loading={loading}
+                      initialCode={{
+                        javascript: typedProblem.starter_code_js,
+                        python: typedProblem.starter_code_py,
+                        java: typedProblem.starter_code_java,
+                        cpp: typedProblem.starter_code_cpp,
+                      }}
+                      problemId={problem.id}
+                    />
+                  </div>
                 </div>
-                
-                <TabsContent value="testcases" className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium">Available Test Cases:</span>
-                      <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        {testCases.length} test cases
-                      </span>
+              </ResizablePanel>
+              
+              <ResizableHandle />
+              
+              {/* Results Section */}
+              <ResizablePanel defaultSize={40} minSize={20}>
+                <div className="h-full bg-gray-50 dark:bg-gray-800 flex flex-col">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+                    <div className="bg-background border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                      <TabsList className="grid w-full grid-cols-3 h-10 rounded-none border-b-0 bg-gray-100 dark:bg-gray-800">
+                        <TabsTrigger value="testcases" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Test Cases</TabsTrigger>
+                        <TabsTrigger value="output" className="flex items-center gap-2 rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">
+                          Output
+                          {loading && <Loader2 className="h-3 w-3 animate-spin" />}
+                        </TabsTrigger>
+                        <TabsTrigger value="details" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Details</TabsTrigger>
+                      </TabsList>
                     </div>
                     
-                    <div className="space-y-2">
-                      {testCases.length > 0 ? (
-                        testCases.map((testCase: any, idx: number) => (
-                          <div key={idx} className="p-3 rounded-lg text-xs border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium">Test Case {idx + 1}</span>
-                              <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                Sample
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-1 gap-1 text-xs">
-                              <div><span className="font-medium">Input:</span> <code className="bg-muted px-1 rounded break-all">{testCase.input || 'N/A'}</code></div>
-                              <div><span className="font-medium">Expected Output:</span> <code className="bg-muted px-1 rounded break-all">{testCase.expected_output || 'N/A'}</code></div>
-                              {testCase.is_hidden && (
-                                <div className="text-orange-600 dark:text-orange-400 text-xs">
-                                  ⚠️ Hidden test case
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center text-muted-foreground text-sm py-8">
-                          {loading ? 'Loading test cases...' : 'No test cases available'}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="output" className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-3">
-                    {loading ? (
-                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                        <div className="text-center">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Executing your code...</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Please wait while we run your solution</p>
-                        </div>
-                      </div>
-                    ) : runResult && Array.isArray(runResult?.results) ? (
-                      <div>
+                    <TabsContent value="testcases" className="flex-1 overflow-y-auto p-4">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium">Execution Results:</span>
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            runResult.results.filter((r: any) => r.passed).length === runResult.results.length
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                          }`}>
-                            {runResult.results.filter((r: any) => r.passed).length} / {runResult.results.length} passed
+                          <span className="text-sm font-medium">Available Test Cases:</span>
+                          <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {testCases.length} test cases
                           </span>
                         </div>
                         
                         <div className="space-y-2">
-                          {runResult.results.map((res: any, idx: number) => (
-                            <div key={idx} className={`p-3 rounded-lg text-xs border shadow-sm ${
-                              res.passed 
-                                ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
-                                : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-                            }`}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium">Test Case {idx + 1}</span>
-                                <span className={`px-2 py-0.5 rounded text-xs ${
-                                  res.passed 
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                }`}>
-                                  {res.passed ? 'PASSED' : 'FAILED'}
-                                </span>
+                          {testCases.length > 0 ? (
+                            testCases.map((testCase: any, idx: number) => (
+                              <div key={idx} className="p-3 rounded-lg text-xs border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-medium">Test Case {idx + 1}</span>
+                                  <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                    Sample
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-1 text-xs">
+                                  <div><span className="font-medium">Input:</span> <code className="bg-muted px-1 rounded break-all">{testCase.input || 'N/A'}</code></div>
+                                  <div><span className="font-medium">Expected Output:</span> <code className="bg-muted px-1 rounded break-all">{testCase.expected_output || 'N/A'}</code></div>
+                                  {testCase.is_hidden && (
+                                    <div className="text-orange-600 dark:text-orange-400 text-xs">
+                                      ⚠️ Hidden test case
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <div className="grid grid-cols-1 gap-1 text-xs">
-                                <div><span className="font-medium">Input:</span> <code className="bg-muted px-1 rounded break-all">{res.input}</code></div>
-                                <div><span className="font-medium">Expected:</span> <code className="bg-muted px-1 rounded break-all">{res.expectedOutput}</code></div>
-                                <div><span className="font-medium">Actual:</span> <code className="bg-muted px-1 rounded break-all">{res.actualOutput}</code></div>
-                                {res.stderr && <div><span className="font-medium">Error:</span> <code className="bg-red-100 px-1 rounded text-red-800 break-all">{res.stderr}</code></div>}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : runResult && runResult.isSubmission ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium">Submission Result:</span>
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            runResult.status === 'Accepted'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                          }`}>
-                            {runResult.status}
-                          </span>
-                        </div>
-                        
-                        <div className="p-3 rounded-lg text-xs border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div><span className="font-medium">Runtime:</span> {runResult.runtime}ms</div>
-                            <div><span className="font-medium">Memory:</span> {runResult.memory}KB</div>
-                          </div>
-                          {runResult.error && (
-                            <div className="mt-2">
-                              <span className="font-medium">Error:</span> <code className="bg-red-100 px-1 rounded text-red-800 break-all">{runResult.error}</code>
+                            ))
+                          ) : (
+                            <div className="text-center text-muted-foreground text-sm py-8">
+                              {loading ? 'Loading test cases...' : 'No test cases available'}
                             </div>
                           )}
                         </div>
                       </div>
-                    ) : (
-                      <div className="text-center text-muted-foreground text-sm py-8">
-                        Run your code to see execution results
+                    </TabsContent>
+                    
+                    <TabsContent value="output" className="flex-1 overflow-y-auto p-4">
+                      <div className="space-y-3">
+                        {loading ? (
+                          <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                            <div className="text-center">
+                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Executing your code...</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Please wait while we run your solution</p>
+                            </div>
+                          </div>
+                        ) : runResult && Array.isArray(runResult?.results) ? (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm font-medium">Execution Results:</span>
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                runResult.results.filter((r: any) => r.passed).length === runResult.results.length
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              }`}>
+                                {runResult.results.filter((r: any) => r.passed).length} / {runResult.results.length} passed
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              {runResult.results.map((res: any, idx: number) => (
+                                <div key={idx} className={`p-3 rounded-lg text-xs border shadow-sm ${
+                                  res.passed 
+                                    ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
+                                    : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+                                }`}>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="font-medium">Test Case {idx + 1}</span>
+                                    <span className={`px-2 py-0.5 rounded text-xs ${
+                                      res.passed 
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                    }`}>
+                                      {res.passed ? 'PASSED' : 'FAILED'}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-1 text-xs">
+                                    <div><span className="font-medium">Input:</span> <code className="bg-muted px-1 rounded break-all">{res.input}</code></div>
+                                    <div><span className="font-medium">Expected:</span> <code className="bg-muted px-1 rounded break-all">{res.expectedOutput}</code></div>
+                                    <div><span className="font-medium">Actual:</span> <code className="bg-muted px-1 rounded break-all">{res.actualOutput}</code></div>
+                                    {res.stderr && <div><span className="font-medium">Error:</span> <code className="bg-red-100 px-1 rounded text-red-800 break-all">{res.stderr}</code></div>}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : runResult && runResult.isSubmission ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm font-medium">Submission Result:</span>
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                runResult.status === 'Accepted'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              }`}>
+                                {runResult.status}
+                              </span>
+                            </div>
+                            
+                            <div className="p-3 rounded-lg text-xs border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div><span className="font-medium">Runtime:</span> {runResult.runtime}ms</div>
+                                <div><span className="font-medium">Memory:</span> {runResult.memory}KB</div>
+                              </div>
+                              {runResult.error && (
+                                <div className="mt-2">
+                                  <span className="font-medium">Error:</span> <code className="bg-red-100 px-1 rounded text-red-800 break-all">{runResult.error}</code>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center text-muted-foreground text-sm py-8">
+                            Run your code to see execution results
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="details" className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-3">
-                    <div className="text-center text-muted-foreground text-sm py-8">
-                      Detailed execution information will appear here
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="details" className="flex-1 overflow-y-auto p-4">
+                      <div className="space-y-3">
+                        <div className="text-center text-muted-foreground text-sm py-8">
+                          Detailed execution information will appear here
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

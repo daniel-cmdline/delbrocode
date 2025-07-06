@@ -166,45 +166,13 @@ export function ProblemDescription({ problem }: ProblemDescriptionProps) {
           </CardHeader>
           <CardContent>
             <div className="prose dark:prose-invert max-w-none">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  code({ node, className, children, ...props }: any) {
-                    const isInline = !className?.includes('language-');
-                    return (
-                      <code
-                        className={`${className} ${isInline ? 'bg-muted px-1 py-0.5 rounded text-sm' : 'block bg-muted p-3 rounded text-sm overflow-x-auto'}`}
-                        {...props}
-                      >
-                        {children}
-                      </code>
-                    );
-                  },
-                  ul({ node, children, ...props }) {
-                    return (
-                      <ul className="list-disc list-inside space-y-1" {...props}>
-                        {children}
-                      </ul>
-                    );
-                  },
-                  ol({ node, children, ...props }) {
-                    return (
-                      <ol className="list-decimal list-inside space-y-1" {...props}>
-                        {children}
-                      </ol>
-                    );
-                  },
-                  li({ node, children, ...props }) {
-                    return (
-                      <li className="mb-1" {...props}>
-                        {children}
-                      </li>
-                    );
-                  },
-                }}
-              >
-                {problem.constraints}
-              </ReactMarkdown>
+              <ul className="list-disc list-inside space-y-2">
+                {problem.constraints.split('\n').filter(constraint => constraint.trim()).map((constraint, index) => (
+                  <li key={index} className="text-sm">
+                    {constraint.trim()}
+                  </li>
+                ))}
+              </ul>
             </div>
           </CardContent>
         </Card>
