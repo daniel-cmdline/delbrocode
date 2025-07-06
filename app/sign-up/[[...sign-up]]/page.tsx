@@ -30,7 +30,6 @@ export default function SignUpPage() {
                 identityPreviewEditButton: "text-blue-400 hover:text-blue-300",
                 formFieldAction: "text-blue-400 hover:text-blue-300",
                 footerAction: "text-gray-400",
-                footerActionLink: "text-blue-400 hover:text-blue-300",
               }
             }}
           />

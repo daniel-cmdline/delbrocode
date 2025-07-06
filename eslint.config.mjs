@@ -4,6 +4,7 @@ const config = {
   rules: {
     // Add any custom rules here
   },
+  ignorePatterns: ['node_modules/', '.next/', 'out/'],
 };
 
 export default config;
