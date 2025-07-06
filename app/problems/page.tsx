@@ -44,7 +44,7 @@ export default async function ProblemsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
-      <div className="container mx-auto px-4 py-12">
+      <div className="w-full px-6 py-12">
         <h1 className="text-2xl font-semibold mb-2 text-neutral-100">Problems</h1>
         <p className="text-neutral-400 mb-8 text-base">Sharpen your skills by solving coding problems.</p>
         <ProblemList 
