@@ -13,6 +13,14 @@ export async function POST(request: NextRequest) {
 
     const { problemId, code, language } = await request.json();
 
+    // Validate required fields
+    if (!problemId || !code || !language) {
+      return NextResponse.json(
+        { error: 'Missing required fields: problemId, code, or language' },
+        { status: 400 }
+      );
+    }
+
     // Get problem and test cases
     const { data: problem } = await supabaseServer
       .from('problems')
@@ -30,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create submission record
-    const { data: submission } = await supabaseServer
+    const { data: submission, error: submissionError } = await supabaseServer
       .from('submissions')
       .insert({
         user_id: userId,
@@ -41,6 +49,14 @@ export async function POST(request: NextRequest) {
       })
       .select()
       .single();
+
+    if (submissionError || !submission) {
+      console.error('Failed to create submission:', submissionError);
+      return NextResponse.json(
+        { error: 'Failed to create submission record' },
+        { status: 500 }
+      );
+    }
 
     // Execute code against test cases
     let allPassed = true;
@@ -85,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     // Update submission
     const status = allPassed ? 'Accepted' : 'Wrong Answer';
-    await supabaseServer
+    const { error: updateError } = await supabaseServer
       .from('submissions')
       .update({
         status,
@@ -95,8 +111,13 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', submission.id);
 
+    if (updateError) {
+      console.error('Failed to update submission:', updateError);
+      // Continue execution even if update fails, but log the error
+    }
+
     // Update user progress
-    await supabaseServer
+    const { error: progressError } = await supabaseServer
       .from('user_progress')
       .upsert({
         user_id: userId,
@@ -108,6 +129,11 @@ export async function POST(request: NextRequest) {
         onConflict: 'user_id,problem_id'
       });
 
+    if (progressError) {
+      console.error('Failed to update user progress:', progressError);
+      // Continue execution even if progress update fails, but log the error
+    }
+
     return NextResponse.json({
       submissionId: submission.id,
       status,
@@ -118,8 +144,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Submission error:', error);
+    
+    // Provide more specific error messages based on the error type
+    let errorMessage = 'Failed to process submission';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'object' && error !== null) {
+      errorMessage = JSON.stringify(error);
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to process submission' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

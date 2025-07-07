@@ -24,7 +24,7 @@ export default function RootLayout({
 
   // If Clerk is not configured, render without authentication
   if (!publishableKey) {
-    return (
+  return (
       <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
         <body className="antialiased">
           <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
@@ -55,13 +55,13 @@ export default function RootLayout({
         <ErrorBoundary>
           <ClerkProvider publishableKey={publishableKey}>
             <ErrorHandler />
-            <Navbar />
-            <main className="min-h-screen">
-              {children}
-            </main>
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
           </ClerkProvider>
         </ErrorBoundary>
-      </body>
-    </html>
+        </body>
+      </html>
   );
 }

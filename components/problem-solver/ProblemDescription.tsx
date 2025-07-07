@@ -148,7 +148,7 @@ export function ProblemDescription({ problem }: ProblemDescriptionProps) {
                   return (
                     <p className="mb-4 last:mb-0" {...props}>
                       {children}
-                    </p>
+              </p>
                   );
                 },
               }}
@@ -171,7 +171,7 @@ export function ProblemDescription({ problem }: ProblemDescriptionProps) {
                   <li key={index} className="text-sm">
                     {constraint.trim()}
                   </li>
-                ))}
+              ))}
               </ul>
             </div>
           </CardContent>
