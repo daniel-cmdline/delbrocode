@@ -216,13 +216,12 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                 <div className="h-full bg-gray-50 dark:bg-gray-800 flex flex-col">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                     <div className="bg-background border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                      <TabsList className="grid w-full grid-cols-3 h-10 rounded-none border-b-0 bg-gray-100 dark:bg-gray-800">
+                      <TabsList className="grid w-full grid-cols-2 h-10 rounded-none border-b-0 bg-gray-100 dark:bg-gray-800">
                         <TabsTrigger value="testcases" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Test Cases</TabsTrigger>
                         <TabsTrigger value="output" className="flex items-center gap-2 rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">
                           Output
                           {loading && <Loader2 className="h-3 w-3 animate-spin" />}
                         </TabsTrigger>
-                        <TabsTrigger value="details" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Details</TabsTrigger>
                       </TabsList>
                     </div>
                     
@@ -245,7 +244,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                                     Sample
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-1 gap-1 text-xs">
+                                <div>
                                   <div><span className="font-medium">Input:</span> <code className="bg-muted px-1 rounded break-all">{testCase.input || 'N/A'}</code></div>
                                   <div><span className="font-medium">Expected Output:</span> <code className="bg-muted px-1 rounded break-all">{testCase.expected_output || 'N/A'}</code></div>
                                   {testCase.is_hidden && (
@@ -278,7 +277,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                         ) : runResult && Array.isArray(runResult?.results) ? (
                           <div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm font-medium">Execution Results:</span>
+                              <span className="text-sm font-medium">Test Case Results:</span>
                               <span className={`px-2 py-1 rounded text-xs ${
                                 runResult.results.filter((r: any) => r.passed).length === runResult.results.length
                                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -287,7 +286,6 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                                 {runResult.results.filter((r: any) => r.passed).length} / {runResult.results.length} passed
                               </span>
                             </div>
-                            
                             <div className="space-y-2">
                               {runResult.results.map((res: any, idx: number) => (
                                 <div key={idx} className={`p-3 rounded-lg text-xs border shadow-sm ${
@@ -315,10 +313,10 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                               ))}
                             </div>
                           </div>
-                        ) : runResult && runResult.isSubmission ? (
-                          <div className="space-y-3">
+                        ) : runResult && !Array.isArray(runResult?.results) ? (
+                          <div className="space-y-2">
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm font-medium">Submission Result:</span>
+                              <span className="text-sm font-medium">Execution Result:</span>
                               <span className={`px-2 py-1 rounded text-xs ${
                                 runResult.status === 'Accepted'
                                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -327,15 +325,24 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                                 {runResult.status}
                               </span>
                             </div>
-                            
                             <div className="p-3 rounded-lg text-xs border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
                               <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div><span className="font-medium">Runtime:</span> {runResult.runtime}ms</div>
+                                <div><span className="font-medium">Runtime:</span> {runResult.time || runResult.runtime}ms</div>
                                 <div><span className="font-medium">Memory:</span> {runResult.memory}KB</div>
                               </div>
-                              {runResult.error && (
+                              {runResult.stdout && (
                                 <div className="mt-2">
-                                  <span className="font-medium">Error:</span> <code className="bg-red-100 px-1 rounded text-red-800 break-all">{runResult.error}</code>
+                                  <span className="font-medium">Output:</span> <code className="bg-muted px-1 rounded break-all">{runResult.stdout}</code>
+                                </div>
+                              )}
+                              {runResult.stderr && (
+                                <div className="mt-2">
+                                  <span className="font-medium">Error:</span> <code className="bg-red-100 px-1 rounded text-red-800 break-all">{runResult.stderr}</code>
+                                </div>
+                              )}
+                              {runResult.compile_output && (
+                                <div className="mt-2">
+                                  <span className="font-medium">Compiler Output:</span> <code className="bg-muted px-1 rounded break-all">{runResult.compile_output}</code>
                                 </div>
                               )}
                             </div>
@@ -345,14 +352,6 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
                             Run your code to see execution results
                           </div>
                         )}
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="details" className="flex-1 overflow-y-auto p-4">
-                      <div className="space-y-3">
-                        <div className="text-center text-muted-foreground text-sm py-8">
-                          Detailed execution information will appear here
-                        </div>
                       </div>
                     </TabsContent>
                   </Tabs>
