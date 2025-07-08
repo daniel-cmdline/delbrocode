@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Home, User, Code } from 'lucide-react';
+import { Home, User, Code, Moon, Sun } from 'lucide-react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 
@@ -12,10 +12,26 @@ export function Navbar() {
   const pathname = usePathname();
   const { user, isSignedIn, isLoaded } = useUser();
   const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
+      if (stored) return stored;
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+      return 'light';
+    }
+    return 'dark';
+  });
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(theme);
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme]);
 
   // Don't render until mounted to prevent hydration issues
   if (!mounted) {
@@ -82,6 +98,13 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center space-x-4">
+          <button
+            aria-label="Toggle theme"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            {theme === 'dark' ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-blue-600" />}
+          </button>
           <div className="hidden md:flex items-center space-x-4">
             <Link 
               href="/" 
