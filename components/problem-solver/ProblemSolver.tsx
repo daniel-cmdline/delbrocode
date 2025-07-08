@@ -84,7 +84,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
             : `Status: ${result.status}`,
         });
       } else {
-        throw new Error(result.error);
+        throw new Error(typeof result.error === 'string' ? result.error : JSON.stringify(result.error));
       }
     } catch (error) {
       toast({
@@ -145,7 +145,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
           isSubmission: true
         });
       } else {
-        throw new Error(result.error || 'Submission failed');
+        throw new Error(typeof result.error === 'string' ? result.error : JSON.stringify(result.error || 'Submission failed'));
       }
     } catch (error) {
       toast({
