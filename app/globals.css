@@ -73,3 +73,21 @@
 .loading-state {
   @apply flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800;
 }
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  background: #1a1024; /* even darker purple background for track */
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #ffd580; /* light orange thumb */
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #ffecb3; /* even lighter orange on hover */
+}
+
+.dark {
+  scrollbar-color: #ffd580 #1a1024;
+  scrollbar-width: thin;
+}
