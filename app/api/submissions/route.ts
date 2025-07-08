@@ -92,9 +92,10 @@ export async function POST(request: NextRequest) {
         totalTime += parseFloat(result.time || '0');
         maxMemory = Math.max(maxMemory, result.memory || 0);
 
-      } catch {
+      } catch (err) {
         allPassed = false;
-        errorMessage = 'Execution failed';
+        errorMessage = err instanceof Error ? err.message : JSON.stringify(err);
+        console.error('Test case execution error:', err);
         break;
       }
     }

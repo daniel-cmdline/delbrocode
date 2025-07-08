@@ -89,7 +89,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
     } catch (error) {
       toast({
         title: 'Execution failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        description: error instanceof Error ? error.message : JSON.stringify(error),
         variant: 'destructive',
       });
     } finally {
@@ -150,7 +150,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
     } catch (error) {
       toast({
         title: 'Submission failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        description: error instanceof Error ? error.message : JSON.stringify(error),
         variant: 'destructive',
       });
     } finally {
