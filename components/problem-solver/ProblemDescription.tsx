@@ -181,7 +181,7 @@ export function ProblemDescription({ problem }: ProblemDescriptionProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Sample Input</CardTitle>
+            <CardTitle>Input</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -196,7 +196,7 @@ export function ProblemDescription({ problem }: ProblemDescriptionProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Sample Output</CardTitle>
+            <CardTitle>Output</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
