@@ -2,12 +2,35 @@ import { Submission } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface SubmissionResultsProps {
   submissions: Submission[];
+  loading?: boolean;
 }
 
-export function SubmissionResults({ submissions }: SubmissionResultsProps) {
+export function SubmissionResults({ submissions, loading }: SubmissionResultsProps) {
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <div className="text-center text-muted-foreground text-sm">Submitting...</div>
+      </div>
+    );
+  }
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            No submissions yet. Submit your solution to see results here.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Accepted': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
@@ -20,18 +43,6 @@ export function SubmissionResults({ submissions }: SubmissionResultsProps) {
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
   };
-
-  if (submissions.length === 0) {
-    return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            No submissions yet. Submit your solution to see results here.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 space-y-4">

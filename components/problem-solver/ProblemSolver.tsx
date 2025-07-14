@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Problem, Submission } from '@/types';
 import { CodeEditor } from '@/components/code-editor/CodeEditor';
 import { ProblemDescription } from './ProblemDescription';
@@ -39,10 +39,27 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
   const [code, setCode] = useState(typedProblem.starter_code_js);
   const [testCases, setTestCases] = useState<any[]>(typedProblem.test_cases || []);
   const [activeTab, setActiveTab] = useState('testcases');
+  const [pendingSubmission, setPendingSubmission] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const latestCodeRef = useRef(code);
+  const latestLanguageRef = useRef(language);
+  const latestUserIdRef = useRef(user.id);
+  const [submissions, setSubmissions] = useState<Submission[]>(userSubmissions);
+  const [activeLeftTab, setActiveLeftTab] = useState('description');
+  const starterCodeKey = `starter_code_${language === 'cpp' ? 'cpp' : language}` as keyof ProblemWithStarterCode;
+  const starterCodeRef = useRef(typedProblem[starterCodeKey] as string);
+
+  // Keep local submissions in sync if userSubmissions changes (e.g. on problem change)
+  useEffect(() => {
+    setSubmissions(userSubmissions);
+  }, [userSubmissions]);
 
   useEffect(() => {
     const languageKey = `starter_code_${language === 'cpp' ? 'cpp' : language}` as keyof ProblemWithStarterCode;
-    setCode(typedProblem[languageKey] as string);
+    const starter = typedProblem[languageKey] as string;
+    setCode(starter);
+    starterCodeRef.current = starter;
+    latestCodeRef.current = starter;
   }, [problem.id, language, typedProblem]);
 
   useEffect(() => {
@@ -51,6 +68,150 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
 
   useEffect(() => {
     setLanguage('javascript'); // Reset language to default when problem changes
+  }, [problem.id]);
+
+  useEffect(() => {
+    latestCodeRef.current = code;
+    latestLanguageRef.current = language;
+    latestUserIdRef.current = user.id;
+  }, [code, language, user.id]);
+
+  // --- Block navigation until submission is successful ---
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (pendingSubmission) {
+        e.preventDefault();
+        e.returnValue = '';
+        toast({
+          title: 'Submission in progress',
+          description: 'Please wait until your code is submitted before leaving.',
+          variant: 'default',
+        });
+        return '';
+      }
+      // If not pending, allow navigation
+      return undefined;
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [pendingSubmission, toast]);
+
+  // --- Auto-submit on attempted leave if not already submitted ---
+  // Move autoSubmit out of useEffect so it can be called from paste handler
+  const autoSubmit = async (reason: string) => {
+    // [DEBUG] console.log(`[AutoSubmit] [START] Called with reason: ${reason}`);
+    // [DEBUG] console.log('[AutoSubmit] [PRE-CHECK] Condition values:', {
+    //   submissionSuccess,
+    //   pendingSubmission,
+    //   userId: latestUserIdRef.current,
+    //   code: latestCodeRef.current,
+    //   codeLength: latestCodeRef.current ? latestCodeRef.current.length : 0,
+    //   codeTrimmedLength: latestCodeRef.current ? latestCodeRef.current.trim().length : 0,
+    //   starterCode: starterCodeRef.current,
+    //   codeEqualsStarter: latestCodeRef.current === starterCodeRef.current
+    // });
+    if (
+      !submissionSuccess &&
+      !pendingSubmission &&
+      latestUserIdRef.current &&
+      latestCodeRef.current &&
+      latestLanguageRef.current &&
+      problem.id
+    ) {
+      // [DEBUG] console.log('[AutoSubmit] [SUBMIT] Attempting submission with:', {
+      //   problemId: problem.id,
+      //   code: latestCodeRef.current,
+      //   language: latestLanguageRef.current
+      // });
+      setPendingSubmission(true);
+      toast({
+        title: 'Auto-submitting',
+        description: `Submitting your code... (${reason})`,
+        variant: 'default',
+      });
+      try {
+        const response = await fetch('/api/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            problemId: problem.id,
+            code: latestCodeRef.current,
+            language: latestLanguageRef.current,
+            autoSubmitted: true,
+            submittedAt: new Date().toISOString(),
+          }),
+        });
+        const result = await response.json();
+        // [DEBUG] console.log('[AutoSubmit] Response:', response.status, result);
+        if (response.ok) {
+          setSubmissionSuccess(true);
+          setSubmissions(prev => [
+            {
+              id: result.submissionId,
+              user_id: String(latestUserIdRef.current),
+              problem_id: problem.id,
+              code: latestCodeRef.current,
+              language: latestLanguageRef.current,
+              status: result.status,
+              runtime: result.runtime,
+              memory_usage: result.memory,
+              error_message: result.error,
+              submitted_at: new Date().toISOString()
+            },
+            ...prev
+          ]);
+          setActiveLeftTab('submissions');
+          toast({
+            title: 'Auto-submitted!',
+            description: 'Your code was submitted.',
+            variant: 'default',
+          });
+        } else {
+          toast({
+            title: 'Auto-submission failed',
+            description: typeof result.error === 'string' ? result.error : JSON.stringify(result.error),
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        // [DEBUG] console.log('[AutoSubmit] Error:', error);
+        toast({
+          title: 'Auto-submission error',
+          description: error instanceof Error ? error.message : JSON.stringify(error),
+          variant: 'destructive',
+        });
+      } finally {
+        setPendingSubmission(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) autoSubmit('visibilitychange');
+    };
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      autoSubmit('beforeunload');
+      if (pendingSubmission) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+      return undefined;
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [problem.id, submissionSuccess, pendingSubmission, toast]);
+
+  // Reset submissionSuccess when problem or code changes
+  useEffect(() => {
+    setSubmissionSuccess(false);
   }, [problem.id]);
 
   const handleRun = async (code: string, language: string) => {
@@ -111,6 +272,8 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
     setRunResult(null);
     // Switch to output tab when submission starts
     setActiveTab('output');
+    // Switch to submissions tab on the left after submission
+    setActiveLeftTab('submissions');
 
     try {
       const response = await fetch('/api/submissions', {
@@ -144,6 +307,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
           error: result.error,
           isSubmission: true
         });
+        setActiveLeftTab('submissions');
       } else {
         throw new Error(typeof result.error === 'string' ? result.error : JSON.stringify(result.error || 'Submission failed'));
       }
@@ -158,12 +322,17 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
     }
   };
 
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    latestCodeRef.current = newCode;
+  };
+
   return (
     <div className="flex-1 overflow-hidden p-4">
       <ResizablePanelGroup direction="horizontal" className="h-full gap-4">
         <ResizablePanel defaultSize={35} minSize={30}>
           <div className="h-full flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <Tabs defaultValue="description" className="flex-1 flex flex-col min-h-0">
+            <Tabs value={activeLeftTab} onValueChange={setActiveLeftTab} className="flex-1 flex flex-col min-h-0">
               <TabsList className="grid w-full grid-cols-2 flex-shrink-0 rounded-none border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
                 <TabsTrigger value="description" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Description</TabsTrigger>
                 <TabsTrigger value="submissions" className="rounded-none data-[state=active]:bg-gray-200 dark:data-[state=active]:bg-gray-700">Submissions</TabsTrigger>
@@ -177,7 +346,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
               
               <TabsContent value="submissions" className="flex-1 overflow-y-auto min-h-0 data-[state=inactive]:hidden">
                 <div className="h-full">
-                <SubmissionResults submissions={userSubmissions} />
+                <SubmissionResults submissions={submissions} loading={loading} />
                 </div>
               </TabsContent>
             </Tabs>
@@ -204,6 +373,8 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
               cpp: typedProblem.starter_code_cpp,
             }}
             problemId={problem.id}
+            onCodeChange={handleCodeChange}
+            onPasteAutoSubmit={() => autoSubmit('paste')}
           />
                   </div>
                 </div>

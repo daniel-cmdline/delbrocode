@@ -12,6 +12,8 @@ interface CodeEditorProps {
   loading?: boolean;
   initialCode?: Record<string, string>;
   problemId?: string;
+  onCodeChange?: (code: string, language: string) => void;
+  onPasteAutoSubmit?: () => void;
 }
 
 const LANGUAGE_CONFIGS = {
@@ -84,7 +86,7 @@ const THEME_CONFIGS = [
   { id: 'hc-white', name: 'High Contrast Light', description: 'High contrast light' },
 ];
 
-export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId }: CodeEditorProps) {
+export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId, onCodeChange, onPasteAutoSubmit }: CodeEditorProps) {
   const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState(initialCode?.[language] || LANGUAGE_CONFIGS[language as keyof typeof LANGUAGE_CONFIGS].template);
   const [theme, setTheme] = useState('vs-dark');
@@ -114,6 +116,21 @@ export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId }:
         onRun(code, language);
       });
     }
+
+   // Listen for paste events
+   if (typeof window !== 'undefined' && typeof onPasteAutoSubmit === 'function') {
+     const domNode = editor.getDomNode();
+     if (domNode) {
+       const handlePaste = (e: ClipboardEvent) => {
+         onPasteAutoSubmit();
+       };
+       domNode.addEventListener('paste', handlePaste);
+       // Clean up
+       editor.onDidDispose(() => {
+         domNode.removeEventListener('paste', handlePaste);
+       });
+     }
+   }
   };
 
   const handleThemeChange = (newTheme: string) => {
@@ -178,7 +195,13 @@ export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId }:
           language={language}
           theme={theme}
           value={code}
-          onChange={(value) => { setCode(value || ''); setUserEdited(true); }}
+          onChange={(value) => {
+            setCode(value || '');
+            setUserEdited(true);
+            if (typeof value === 'string' && typeof language === 'string' && typeof onCodeChange === 'function') {
+              onCodeChange(value, language);
+            }
+          }}
           onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
