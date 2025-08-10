@@ -36,17 +36,27 @@ export async function executeCode(
   language: keyof typeof LANGUAGE_IDS,
   input?: string
 ): Promise<string> {
-  const response = await judge0Client.post('/submissions', {
-    source_code: code,
-    language_id: LANGUAGE_IDS[language],
-    stdin: input || '',
-    wait: true
-  });
+  try {
+    const response = await judge0Client.post('/submissions', {
+      source_code: code,
+      language_id: LANGUAGE_IDS[language],
+      stdin: input || '',
+      wait: false  // Don't wait, we'll poll for results
+    });
 
-  return response.data.token;
+    return response.data.token;
+  } catch (error) {
+    console.error('Judge0 submission error:', error);
+    throw error;
+  }
 }
 
 export async function getSubmissionResult(token: string): Promise<ExecutionResult> {
-  const response = await judge0Client.get(`/submissions/${token}`);
-  return response.data;
+  try {
+    const response = await judge0Client.get(`/submissions/${token}?base64_encoded=false&fields=*`);
+    return response.data;
+  } catch (error) {
+    console.error('Judge0 get result error:', error);
+    throw error;
+  }
 }

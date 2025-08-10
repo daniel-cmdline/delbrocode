@@ -13,68 +13,50 @@ interface CodeEditorProps {
   initialCode?: Record<string, string>;
   problemId?: string;
   onCodeChange?: (code: string, language: string) => void;
-  onPasteAutoSubmit?: () => void;
+  onPasteAutoSubmit?: (action: string) => void;
 }
 
 const LANGUAGE_CONFIGS = {
   javascript: {
     id: 'javascript',
     name: 'JavaScript',
-    template: `function solution(input) {
-    // Your code here
-    return "";
-}
-
-// Read input
-const input = require('fs').readFileSync(0, 'utf8').trim();
-console.log(solution(input));`
+    template: `// Driver code will handle input/output
+// Focus only on implementing the solution
+function twoSum(nums, target) {
+    // TODO: Implement solution
+    return [];
+}`
   },
   python: {
     id: 'python',
     name: 'Python',
-    template: `def solution(input_str):
-    # Your code here
-    return ""
-
-# Read input
-input_str = input().strip()
-print(solution(input_str))`
+    template: `# Driver code will handle input/output
+# Focus only on implementing the solution
+class Solution:
+    def twoSum(self, nums, target):
+        # TODO: Implement solution
+        return []`
   },
   java: {
     id: 'java',
     name: 'Java',
-    template: `import java.util.*;
-
+    template: `// Driver code will handle input/output
+// Focus only on implementing the solution
 public class Solution {
-    public static String solution(String input) {
-        // Your code here
-        return "";
-    }
-    
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        String input = sc.nextLine();
-        System.out.println(solution(input));
+    public int[] twoSum(int[] nums, int target) {
+        // TODO: Implement solution
+        return new int[0];
     }
 }`
   },
   cpp: {
     id: 'cpp',
     name: 'C++',
-    template: `#include <iostream>
-#include <string>
-using namespace std;
-
-string solution(string input) {
-    // Your code here
-    return "";
-}
-
-int main() {
-    string input;
-    getline(cin, input);
-    cout << solution(input) << endl;
-    return 0;
+    template: `// Driver code will handle input/output
+// Focus only on implementing the solution
+vector<int> twoSum(vector<int>& nums, int target) {
+    // TODO: Implement solution
+    return {};
 }`
   }
 };
@@ -88,20 +70,24 @@ const THEME_CONFIGS = [
 
 export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId, onCodeChange, onPasteAutoSubmit }: CodeEditorProps) {
   const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState(initialCode?.[language] || LANGUAGE_CONFIGS[language as keyof typeof LANGUAGE_CONFIGS].template);
+  const [codeByLanguage, setCodeByLanguage] = useState<Record<string, string>>({});
   const [theme, setTheme] = useState('vs-dark');
   const editorRef = useRef<any>(null);
-  const [userEdited, setUserEdited] = useState(false);
   const monaco = useMonaco();
 
+  // Initialize code for each language
+  const getCurrentCode = () => {
+    return codeByLanguage[language] || 
+           initialCode?.[language] || 
+           LANGUAGE_CONFIGS[language as keyof typeof LANGUAGE_CONFIGS].template;
+  };
+
+  const [code, setCode] = useState(getCurrentCode());
+
+  // Update code when language changes, preserving user edits
   useEffect(() => {
-    if (!userEdited && initialCode?.[language]) {
-      setCode(initialCode[language]);
-    } else if (!userEdited) {
-      setCode(LANGUAGE_CONFIGS[language as keyof typeof LANGUAGE_CONFIGS].template);
-    }
-    // eslint-disable-next-line
-  }, [language, initialCode]);
+    setCode(getCurrentCode());
+  }, [language, initialCode, codeByLanguage]);
 
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
@@ -116,21 +102,6 @@ export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId, o
         onRun(code, language);
       });
     }
-
-   // Listen for paste events
-   if (typeof window !== 'undefined' && typeof onPasteAutoSubmit === 'function') {
-     const domNode = editor.getDomNode();
-     if (domNode) {
-       const handlePaste = (e: ClipboardEvent) => {
-         onPasteAutoSubmit();
-       };
-       domNode.addEventListener('paste', handlePaste);
-       // Clean up
-       editor.onDidDispose(() => {
-         domNode.removeEventListener('paste', handlePaste);
-       });
-     }
-   }
   };
 
   const handleThemeChange = (newTheme: string) => {
@@ -141,7 +112,11 @@ export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId, o
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={(newLang) => {
+            // Save current code before switching
+            setCodeByLanguage(prev => ({ ...prev, [language]: code }));
+            setLanguage(newLang);
+          }}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -196,8 +171,9 @@ export function CodeEditor({ onSubmit, onRun, loading, initialCode, problemId, o
           theme={theme}
           value={code}
           onChange={(value) => {
-            setCode(value || '');
-            setUserEdited(true);
+            const newCode = value || '';
+            setCode(newCode);
+            setCodeByLanguage(prev => ({ ...prev, [language]: newCode }));
             if (typeof value === 'string' && typeof language === 'string' && typeof onCodeChange === 'function') {
               onCodeChange(value, language);
             }

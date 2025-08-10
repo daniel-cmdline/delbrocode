@@ -74,20 +74,40 @@
   @apply flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800;
 }
 
-/* Custom scrollbar for dark mode */
-.dark ::-webkit-scrollbar {
+/* Custom scrollbar for smooth scrolling */
+::-webkit-scrollbar {
   width: 8px;
-  background: #1a1024; /* even darker purple background for track */
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: #ffd580; /* light orange thumb */
-  border-radius: 4px;
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #ffecb3; /* even lighter orange on hover */
+  background: transparent;
 }
 
-.dark {
-  scrollbar-color: #ffd580 #1a1024;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(100, 100, 100, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 100, 100, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+* {
   scrollbar-width: thin;
+  scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }

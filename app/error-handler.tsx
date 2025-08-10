@@ -8,11 +8,16 @@ export function ErrorHandler() {
       // Log the full event and reason for debugging
       console.error('Unhandled promise rejection:', {
         reason: event.reason,
-        promise: event.promise,
+        message: event.reason?.message || 'No message provided',
         stack: event.reason?.stack,
-        message: event.reason?.message,
-        fullEvent: event
+        type: typeof event.reason,
+        string: String(event.reason)
       });
+      
+      // Provide user-friendly error message
+      if (event.reason?.message?.includes('Supabase')) {
+        console.error('Supabase connection issue detected. Check your .env.local file and database connection.');
+      }
       
       // Prevent the default browser behavior
       event.preventDefault();

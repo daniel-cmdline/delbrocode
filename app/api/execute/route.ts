@@ -2,6 +2,75 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeCode, getSubmissionResult } from '@/lib/judge0/client';
 import { supabaseServer } from '@/lib/supabase/server';
 
+// Helper function to wrap user code with I/O handling
+function wrapCodeWithIO(userCode: string, language: string): string {
+  switch (language) {
+    case 'javascript':
+      return `// Test with hardcoded input first
+const nums = [2, 7, 11, 15];
+const target = 9;
+
+${userCode}
+
+// Execute and output result
+const result = twoSum(nums, target);
+console.log(JSON.stringify(result));`;
+
+    case 'python':
+      return `# Test with hardcoded input first
+nums = [2, 7, 11, 15]
+target = 9
+
+${userCode}
+
+# Execute and output result
+solution = Solution()
+result = solution.twoSum(nums, target)
+print(result)`;
+
+    case 'java':
+      return `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // Test with hardcoded input first
+        int[] nums = {2, 7, 11, 15};
+        int target = 9;
+        
+        ${userCode}
+        
+        // Execute and output result
+        Solution solution = new Solution();
+        int[] result = solution.twoSum(nums, target);
+        System.out.println("[" + result[0] + "," + result[1] + "]");
+    }
+}`;
+
+    case 'cpp':
+      return `#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+${userCode}
+
+int main() {
+    // Test with hardcoded input first
+    vector<int> nums = {2, 7, 11, 15};
+    int target = 9;
+    
+    // Execute and output result
+    vector<int> result = twoSum(nums, target);
+    cout << "[" << result[0] << "," << result[1] << "]" << endl;
+    
+    return 0;
+}`;
+
+    default:
+      return userCode;
+  }
+}
+
 // Helper function to preprocess Java code for Judge0
 function preprocessJavaCode(code: string): string {
   // Check if the code contains a public class
@@ -30,10 +99,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Preprocess code based on language
-    let processedCode = code;
+    // Check if code already has I/O handling (complete starter code)
+    const hasIOHandling = (
+      (language === 'javascript' && code.includes('readFileSync')) ||
+      (language === 'python' && code.includes('sys.stdin')) ||
+      (language === 'java' && code.includes('Scanner')) ||
+      (language === 'cpp' && code.includes('getline'))
+    );
+
+    let processedCode;
+    if (hasIOHandling) {
+      // Use the complete starter code as-is
+      processedCode = code;
+      console.log('Using complete starter code with built-in I/O handling');
+    } else {
+      // Wrap simple user functions with I/O handling
+      processedCode = wrapCodeWithIO(code, language);
+      console.log('Wrapping user code with I/O handling');
+    }
+
     if (language === 'java') {
-      processedCode = preprocessJavaCode(code);
+      processedCode = preprocessJavaCode(processedCode);
       console.log('Preprocessed Java code:', processedCode);
     }
 
@@ -56,28 +142,50 @@ export async function POST(request: NextRequest) {
     if (Array.isArray(cases) && cases.length > 0) {
       const results = [];
       for (const testCase of cases) {
-        console.log('Sending code to Judge0:', { code: processedCode, language, input: testCase.input });
-        const token = await executeCode(processedCode, language, testCase.input);
-        let result = await getSubmissionResult(token);
-        let attempts = 0;
-        const maxAttempts = 10;
-        while (result.status.id <= 2 && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          result = await getSubmissionResult(token);
-          attempts++;
+        try {
+          console.log('Sending code to Judge0:', { code: processedCode, language, input: testCase.input });
+          const token = await executeCode(processedCode, language, testCase.input);
+          console.log('Received token:', token);
+          
+          let result = await getSubmissionResult(token);
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          // Poll for results until completion
+          while (result.status.id <= 2 && attempts < maxAttempts) {
+            console.log(`Polling attempt ${attempts + 1}, status: ${result.status.description}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            result = await getSubmissionResult(token);
+            attempts++;
+          }
+          
+          console.log('Final Judge0 result:', result);
+          
+          results.push({
+            input: testCase.input,
+            expectedOutput: testCase.expected_output,
+            actualOutput: result.stdout,
+            passed: (result.stdout?.trim() ?? '') === (testCase.expected_output?.trim() ?? ''),
+            status: result.status.description,
+            stderr: result.stderr,
+            compile_output: result.compile_output,
+            time: result.time,
+            memory: result.memory
+          });
+        } catch (error) {
+          console.error('Error executing test case:', error);
+          results.push({
+            input: testCase.input,
+            expectedOutput: testCase.expected_output,
+            actualOutput: '',
+            passed: false,
+            status: 'Error',
+            stderr: error instanceof Error ? error.message : 'Unknown error',
+            compile_output: null,
+            time: null,
+            memory: null
+          });
         }
-        console.log('Judge0 result:', result);
-        results.push({
-          input: testCase.input,
-          expectedOutput: testCase.expected_output,
-          actualOutput: result.stdout,
-          passed: (result.stdout?.trim() ?? '') === (testCase.expected_output?.trim() ?? ''),
-          status: result.status.description,
-          stderr: result.stderr,
-          compile_output: result.compile_output,
-          time: result.time,
-          memory: result.memory
-        });
       }
       return NextResponse.json({ results });
     }

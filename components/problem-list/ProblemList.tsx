@@ -89,50 +89,56 @@ export function ProblemList({ problems, userProgress = {}, bookmarks = [] }: Pro
         </Select>
       </div>
 
-      {/* Problems Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Three-Column Problem Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProblems.map((problem) => (
-          <Card key={problem.id} className="hover:shadow-lg hover:shadow-blue-500/20 hover:border-blue-500/50 hover:bg-gray-800 transition-all duration-300 ease-in-out bg-gray-900 border border-gray-800 text-white cursor-pointer">
-            <CardHeader className="pb-3">
+          <Card key={problem.id} className="group relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <CardHeader className="relative pb-3">
               <div className="flex items-start justify-between">
-                <CardTitle className="text-lg leading-tight text-white">
+                <CardTitle className="text-lg font-semibold leading-tight text-white">
                   <Link 
                     href={`/problems/${problem.id}`}
-                    className="hover:text-blue-400 transition-colors"
+                    className="hover:text-blue-400 transition-colors line-clamp-2"
                   >
                     {problem.title}
                   </Link>
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {bookmarks.includes(problem.id) && (
-                    <BookmarkCheck className="w-4 h-4 text-primary" />
+                    <BookmarkCheck className="w-5 h-5 text-yellow-400" />
                   )}
                 </div>
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge className={getDifficultyColor(problem.difficulty) + ' border-none'}>
+            <CardContent className="relative space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge className={getDifficultyColor(problem.difficulty) + ' border-none px-3 py-1 text-sm font-medium'}>
                   {problem.difficulty}
                 </Badge>
-                <Badge variant="outline" className="border-gray-700 text-gray-300 bg-gray-800">
+                <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-800/50 px-3 py-1 text-sm">
                   {problem.category}
                 </Badge>
-                {userProgress[problem.id] && (
-                  <Badge className={getStatusColor(userProgress[problem.id]) + ' border-none'}>
-                    {userProgress[problem.id]}
-                  </Badge>
-                )}
               </div>
               
-              <p className="text-sm text-gray-300 line-clamp-2">
-                {problem.description.slice(0, 100)}...
+              <p className="text-sm text-gray-300 line-clamp-3 leading-relaxed">
+                {problem.description}
               </p>
               
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>{problem.time_limit}ms</span>
-                <span>{problem.memory_limit}MB</span>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+                <div className="flex items-center gap-2">
+                  {userProgress[problem.id] && (
+                    <Badge className={getStatusColor(userProgress[problem.id]) + ' border-none text-xs px-2 py-1'}>
+                      {userProgress[problem.id]}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span>⏱️ {problem.time_limit}ms</span>
+                  <span>💾 {problem.memory_limit}MB</span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -141,7 +147,28 @@ export function ProblemList({ problems, userProgress = {}, bookmarks = [] }: Pro
 
       {filteredProblems.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No problems found matching your criteria.</p>
+          <div className="max-w-md mx-auto">
+            {problems.length === 0 ? (
+              <>
+                <div className="mb-4">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-neutral-100">No Problems Available</h3>
+                <p className="text-neutral-400 mb-4">
+                  The database appears to be empty. Please run the seed script to populate sample problems.
+                </p>
+                <div className="space-y-2 text-sm text-neutral-500">
+                  <p>1. Run the SQL schema: <code className="bg-gray-800 px-2 py-1 rounded">supabase_schema.sql</code></p>
+                  <p>2. Run the seed data: <code className="bg-gray-800 px-2 py-1 rounded">seed_complete.sql</code></p>
+                  <p>3. Refresh this page</p>
+                </div>
+              </>
+            ) : (
+              <p className="text-muted-foreground">No problems found matching your criteria.</p>
+            )}
+          </div>
         </div>
       )}
     </div>
