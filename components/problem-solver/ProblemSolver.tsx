@@ -41,6 +41,7 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
   const [activeTab, setActiveTab] = useState('testcases');
   const [pendingSubmission, setPendingSubmission] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const latestCodeRef = useRef(code);
   const latestLanguageRef = useRef(language);
   const latestUserIdRef = useRef(user.id);
@@ -209,6 +210,41 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
     };
   }, [problem.id, submissionSuccess, pendingSubmission, toast]);
 
+  // Poll for submission updates
+  useEffect(() => {
+    const pollSubmissions = async () => {
+      try {
+        const response = await fetch(`/api/submissions?problemId=${problem.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSubmissions(data.submissions || []);
+        }
+      } catch (error) {
+        console.error('Error polling submissions:', error);
+      }
+    };
+
+    // Initial load
+    pollSubmissions();
+
+    // Set up polling interval (every 2 seconds)
+    const interval = setInterval(pollSubmissions, 2000);
+    setPollingInterval(interval);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [problem.id]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
   // Reset submissionSuccess when problem or code changes
   useEffect(() => {
     setSubmissionSuccess(false);
@@ -308,6 +344,13 @@ export function ProblemSolver({ problem, userSubmissions, user }: ProblemSolverP
           isSubmission: true
         });
         setActiveLeftTab('submissions');
+        
+        // Force immediate refresh of submissions
+        const refreshResponse = await fetch(`/api/submissions?problemId=${problem.id}`);
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          setSubmissions(data.submissions || []);
+        }
       } else {
         throw new Error(typeof result.error === 'string' ? result.error : JSON.stringify(result.error || 'Submission failed'));
       }

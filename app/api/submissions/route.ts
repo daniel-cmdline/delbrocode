@@ -160,3 +160,47 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const problemId = searchParams.get('problemId');
+
+    if (!problemId) {
+      return NextResponse.json(
+        { error: 'Missing required parameter: problemId' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch submissions for the current user and problem
+    const { data: submissions, error } = await supabaseServer
+      .from('submissions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('problem_id', problemId)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching submissions:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch submissions' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ submissions });
+  } catch (error) {
+    console.error('Error in GET /api/submissions:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

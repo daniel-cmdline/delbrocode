@@ -164,5 +164,5 @@ INSERT INTO test_cases (problem_id, input, expected_output, is_hidden) VALUES
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', '{"nums": [2,7,11,15], "target": 9}', '[0,1]', false),
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', '{"nums": [3,2,4], "target": 6}', '[1,2]', false),
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', '{"nums": [3,3], "target": 6}', '[0,1]', false),
-('a1b2c3d4-e5f6-7890-abcd-ef1234567890', '{"nums": [1,5,3,7,9,2], "target": 12}', '[2,4]', true),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567890', '{"nums": [1,5,3,7,9,2], "target": 12}', '[1,3]', true),
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', '{"nums": [-1,-2,-3,-4,-5], "target": -8}', '[2,4]', true);
