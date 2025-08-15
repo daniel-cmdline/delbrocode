@@ -45,7 +45,7 @@ export default function HeroSectionOne() {
           className="relative z-10 mb-6"
         >
           <span className="inline-flex items-center rounded-full bg-gradient-to-r from-gray-800 to-black px-4 py-2 text-sm font-medium text-white shadow-lg border border-gray-600">
-            Introducing CodeSprint
+            Introducing Del's Bro Coding
           </span>
         </motion.div>
         
@@ -82,8 +82,8 @@ export default function HeroSectionOne() {
           }}
           className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-gray-300"
         >
-          Practice coding problems with real-time execution and testing. 
-          Join thousands of developers improving their skills on CodeSprint.
+          Practice bro coding with del. 
+          Join thousands of developers improving their skills on del'sBroCodePlatform.
         </motion.p>
         
         <motion.div
