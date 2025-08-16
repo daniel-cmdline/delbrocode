@@ -3,6 +3,10 @@ import axios from 'axios';
 const JUDGE0_API_URL = process.env.NEXT_PUBLIC_JUDGE0_API_URL;
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
 
+if (!JUDGE0_API_URL || !JUDGE0_API_KEY) {
+  throw new Error('Judge0 API environment variables are not configured.');
+}
+
 export const judge0Client = axios.create({
   baseURL: JUDGE0_API_URL,
   headers: {
