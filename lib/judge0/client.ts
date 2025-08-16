@@ -1,13 +1,17 @@
 import axios from 'axios';
 
-const JUDGE0_API_URL = process.env.JUDGE0_API_URL || 'http://localhost:2358';
+// Use the correct environment variable names
+const JUDGE0_API_URL = process.env.NEXT_PUBLIC_JUDGE0_API_URL || 'http://localhost:2358';
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
 
 export const judge0Client = axios.create({
   baseURL: JUDGE0_API_URL,
   headers: {
     'Content-Type': 'application/json',
-    ...(JUDGE0_API_KEY && { 'X-RapidAPI-Key': JUDGE0_API_KEY })
+    ...(JUDGE0_API_KEY && {
+      'X-RapidAPI-Key': JUDGE0_API_KEY,
+      'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com' // <-- Add this line
+    })
   }
 });
 
